@@ -7,107 +7,181 @@ contract Sizzle {
     struct CertMetadata {
         address owner;
         string domain;
-        string cert;
+        string pubKey;
         int reputation;
         int reputationMax;
         bool valid;
+    }
+
+    struct CertParticipation {
+        EnumerableSet.AddressSet endUser;
         EnumerableSet.AddressSet endorser;
         EnumerableSet.AddressSet denier;
     }
 
     struct Peer {
-        address p;
+        address addr;
         int reputation;
     }
 
-    int reputationThreshold = 2;
+    int REPUTATION_THRESHOLD = 2;
+    int PEER_REPUTATION_RATING_COUNT = 50;
+    int PEER_REPUTATION_MAX = 100;
+    int PEER_REPUTATION_PRECISION = 10000;
 
     mapping(string => CertMetadata) certs;
+    mapping(string => CertParticipation) participations;
     mapping(address => Peer) peers;
+    mapping(address => int[]) peersRating;
     
-    event CertPublishRequestCreated(string domain);
-    event CertValid(string domain);
+    event CertPublishRequestCreated(CertMetadata cert);
+    event CertValid(CertMetadata cert);
     event CertEndorsed(string domain, Peer peer);
     event CertDenied(string domain, Peer peer);
     
-    function certPublishRequest(string memory domain, string memory certStr) public {
+    function certPublishRequest(string memory domain, string memory pubKey) public {
         require(certs[domain].owner == address(0));
 
         CertMetadata storage c = certs[domain];
         c.owner = msg.sender;
         c.domain = domain;
-        c.cert = certStr;
+        c.pubKey = pubKey;
         c.reputation = 0;
         c.reputationMax = 0;
         c.valid = false;
 
-        emit CertPublishRequestCreated(c.domain);
+        // emit CertPublishRequestCreated(c);
     }
 
     function calculateCertValidity(string memory domain) private {
         CertMetadata storage c = certs[domain];
         
-        if (!c.valid && c.reputation * reputationThreshold >= c.reputationMax) {
+        if (!c.valid && c.reputation * REPUTATION_THRESHOLD >= c.reputationMax) {
             c.valid = true;
-            emit CertValid(domain);
+            // emit CertValid(c);
         }
     }
 
     function certEndorseByPeer(string memory domain) public {
         Peer storage peer = peers[msg.sender];
         CertMetadata storage cert = certs[domain];
+        CertParticipation storage participation = participations[domain];
 
         require(cert.owner != msg.sender);
-        require(!EnumerableSet.contains(cert.endorser, msg.sender));
-        require(!EnumerableSet.contains(cert.denier, msg.sender));
-        require(peer.p != address(0));
+        require(!EnumerableSet.contains(participation.endUser, msg.sender));
+        require(!EnumerableSet.contains(participation.endorser, msg.sender));
+        require(!EnumerableSet.contains(participation.denier, msg.sender));
+        require(peer.addr != address(0));
 
-        // TODO: Update reputation calculation
         cert.reputation += peer.reputation;
-        cert.reputationMax += 10;
-        EnumerableSet.add(cert.endorser, msg.sender);
+        cert.reputationMax += PEER_REPUTATION_MAX;
+        EnumerableSet.add(participation.endorser, msg.sender);
 
         calculateCertValidity(domain);
 
-        emit CertEndorsed(domain, peer);
+        // emit CertEndorsed(domain, peer);
     }
 
     function certDenyByPeer(string memory domain) public {
         Peer storage peer = peers[msg.sender];
         CertMetadata storage cert = certs[domain];
+        CertParticipation storage participation = participations[domain];
 
         require(cert.owner != msg.sender);
-        require(!EnumerableSet.contains(cert.endorser, msg.sender));
-        require(!EnumerableSet.contains(cert.denier, msg.sender));
-        require(peer.p != address(0));
+        require(!EnumerableSet.contains(participation.endUser, msg.sender));
+        require(!EnumerableSet.contains(participation.endorser, msg.sender));
+        require(!EnumerableSet.contains(participation.denier, msg.sender));
+        require(peer.addr != address(0));
 
-        // TODO: Update reputation calculation
         cert.reputation -= peer.reputation;
-        cert.reputationMax += 10;
-        EnumerableSet.add(cert.denier, msg.sender);
+        cert.reputationMax += PEER_REPUTATION_MAX;
+        EnumerableSet.add(participation.denier, msg.sender);
 
         calculateCertValidity(domain);
 
-        emit CertDenied(domain, peer);
+        // emit CertDenied(domain, peer);
+    }
+
+    function calculatePeerReputation(address addr) private {
+        int ratingLen = int(peersRating[addr].length);
+        int startIdx = ratingLen - PEER_REPUTATION_RATING_COUNT;
+        if (startIdx < 0) {
+            startIdx = 0;
+        }
+
+        int sumF = (PEER_REPUTATION_RATING_COUNT/2) * (1 + PEER_REPUTATION_RATING_COUNT);
+        int sumR = 0;
+        for (int i = startIdx; i < ratingLen; i++) {
+            int p = (PEER_REPUTATION_PRECISION * i / PEER_REPUTATION_RATING_COUNT) / sumF;
+            sumR += p * peersRating[addr][uint(i)];
+        }
+
+        peers[addr].reputation = sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
     }
 
     function certEndorseByUser(string memory domain) public {
+        CertMetadata storage cert = certs[domain];
+        CertParticipation storage participation = participations[domain];
+
+        require(cert.owner != msg.sender);
+        require(!EnumerableSet.contains(participation.endUser, msg.sender));
+        require(!EnumerableSet.contains(participation.endorser, msg.sender));
+        require(!EnumerableSet.contains(participation.denier, msg.sender));
+
+        int rating = 1;
+        uint endorserLen = EnumerableSet.length(participation.endorser);
+        for (uint i = 0; i < endorserLen; i++) {
+            address addr = EnumerableSet.at(participation.endorser, i);
+            peersRating[addr].push(rating);
+            calculatePeerReputation(addr);
+        }
+        
+        uint denierLen = EnumerableSet.length(participation.denier);
+        for (uint i = 0; i < denierLen; i++) {
+            address addr = EnumerableSet.at(participation.denier, i);
+            peersRating[addr].push(-1 * rating);
+            calculatePeerReputation(addr);
+        }
+
+        EnumerableSet.add(participation.endUser, msg.sender);
     }
 
     function certDenyByUser(string memory domain) public {
+        CertMetadata storage cert = certs[domain];
+        CertParticipation storage participation = participations[domain];
+
+        require(cert.owner != msg.sender);
+        require(!EnumerableSet.contains(participation.endUser, msg.sender));
+        require(!EnumerableSet.contains(participation.endorser, msg.sender));
+        require(!EnumerableSet.contains(participation.denier, msg.sender));
+
+        int rating = -1;
+        uint endorserLen = EnumerableSet.length(participation.endorser);
+        for (uint i = 0; i < endorserLen; i++) {
+            address addr = EnumerableSet.at(participation.endorser, i);
+            peersRating[addr].push(rating);
+            calculatePeerReputation(addr);
+        }
+
+        uint denierLen = EnumerableSet.length(participation.denier);
+        for (uint i = 0; i < denierLen; i++) {
+            address addr = EnumerableSet.at(participation.denier, i);
+            peersRating[addr].push(-1 * rating);
+            calculatePeerReputation(addr);
+        }
+
+        EnumerableSet.add(participation.endUser, msg.sender);
     }
 
-    function certQuery(string memory domain) public view returns (string memory cert) {
-        // TODO: Change data structure to certmetadata and certsupport?
-        CertMetadata storage c = certs[domain];
-        return c.cert;
+    function certQuery(string memory domain) public view returns (CertMetadata memory cert) {
+        return certs[domain];
     }
 
-    function peerRegister(string memory pubkey) public {
-        require(peers[msg.sender].p == address(0));
+    function peerRegister() public {
+        require(peers[msg.sender].addr == address(0));
         
         Peer storage peer = peers[msg.sender];
-        peer.p = msg.sender;
+        peer.addr = msg.sender;
         peer.reputation = 0;
     }
 }
