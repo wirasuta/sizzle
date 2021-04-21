@@ -34,10 +34,10 @@ contract Sizzle {
     mapping(address => Peer) peers;
     mapping(address => int[]) peersRating;
     
-    event CertPublishRequestCreated(CertMetadata cert);
-    event CertValid(CertMetadata cert);
-    event CertEndorsed(string domain, Peer peer);
-    event CertDenied(string domain, Peer peer);
+    event CertPublishRequestCreated(address owner, string domain, string pubKey);
+    event CertValid(address owner, string domain, string pubKey, int reputation);
+    event CertEndorsed(string domain, address peer);
+    event CertDenied(string domain, address peer);
     
     function certPublishRequest(string memory domain, string memory pubKey) public {
         require(certs[domain].owner == address(0));
@@ -50,7 +50,7 @@ contract Sizzle {
         c.reputationMax = 0;
         c.valid = false;
 
-        // emit CertPublishRequestCreated(c);
+        emit CertPublishRequestCreated(c.owner, c.domain, c.pubKey);
     }
 
     function calculateCertValidity(string memory domain) private {
@@ -58,7 +58,7 @@ contract Sizzle {
         
         if (!c.valid && c.reputation * REPUTATION_THRESHOLD >= c.reputationMax) {
             c.valid = true;
-            // emit CertValid(c);
+            emit CertValid(c.owner, c.domain, c.pubKey, c.reputation);
         }
     }
 
@@ -67,6 +67,7 @@ contract Sizzle {
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
+        require(cert.owner != address(0));
         require(cert.owner != msg.sender);
         require(!EnumerableSet.contains(participation.endUser, msg.sender));
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
@@ -79,7 +80,7 @@ contract Sizzle {
 
         calculateCertValidity(domain);
 
-        // emit CertEndorsed(domain, peer);
+        emit CertEndorsed(domain, peer.addr);
     }
 
     function certDenyByPeer(string memory domain) public {
@@ -87,6 +88,7 @@ contract Sizzle {
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
+        require(cert.owner != address(0));
         require(cert.owner != msg.sender);
         require(!EnumerableSet.contains(participation.endUser, msg.sender));
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
@@ -99,30 +101,36 @@ contract Sizzle {
 
         calculateCertValidity(domain);
 
-        // emit CertDenied(domain, peer);
+        emit CertDenied(domain, peer.addr);
     }
 
     function calculatePeerReputation(address addr) private {
-        int ratingLen = int(peersRating[addr].length);
+        int[] storage peerRating = peersRating[addr];
+        int ratingLen = int(peerRating.length);
         int startIdx = ratingLen - PEER_REPUTATION_RATING_COUNT;
         if (startIdx < 0) {
             startIdx = 0;
         }
+        int significantRatingLen = ratingLen - startIdx;
 
-        int sumF = (PEER_REPUTATION_RATING_COUNT/2) * (1 + PEER_REPUTATION_RATING_COUNT);
+        int sumF = (significantRatingLen/2) * (1 + significantRatingLen);
         int sumR = 0;
-        for (int i = startIdx; i < ratingLen; i++) {
-            int p = (PEER_REPUTATION_PRECISION * i / PEER_REPUTATION_RATING_COUNT) / sumF;
-            sumR += p * peersRating[addr][uint(i)];
+        if (sumF != 0) {
+            for (int i = startIdx; i < ratingLen; i++) {
+                int p = (PEER_REPUTATION_PRECISION * i / significantRatingLen) / sumF;
+                sumR += p * peerRating[uint(i)];
+            }
         }
 
-        peers[addr].reputation = sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
+        Peer storage peer = peers[addr];
+        peer.reputation = sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
     }
 
     function certEndorseByUser(string memory domain) public {
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
+        require(cert.owner != address(0));
         require(cert.owner != msg.sender);
         require(!EnumerableSet.contains(participation.endUser, msg.sender));
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
@@ -150,6 +158,7 @@ contract Sizzle {
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
+        require(cert.owner != address(0));
         require(cert.owner != msg.sender);
         require(!EnumerableSet.contains(participation.endUser, msg.sender));
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
