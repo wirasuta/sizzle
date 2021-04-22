@@ -19,7 +19,7 @@ contract Sizzle {
         EnumerableSet.AddressSet denier;
     }
 
-    struct Peer {
+    struct PeerMetadata{
         address addr;
         int reputation;
     }
@@ -63,7 +63,7 @@ contract Sizzle {
     }
 
     function certEndorseByPeer(string memory domain) public {
-        Peer storage peer = peers[msg.sender];
+        PeerMetadata storage peer = peers[msg.sender];
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
@@ -84,7 +84,7 @@ contract Sizzle {
     }
 
     function certDenyByPeer(string memory domain) public {
-        Peer storage peer = peers[msg.sender];
+        PeerMetadata storage peer = peers[msg.sender];
         CertMetadata storage cert = certs[domain];
         CertParticipation storage participation = participations[domain];
 
@@ -122,7 +122,7 @@ contract Sizzle {
             }
         }
 
-        Peer storage peer = peers[addr];
+        PeerMetadata storage peer = peers[addr];
         peer.reputation = sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
     }
 
@@ -189,7 +189,7 @@ contract Sizzle {
     function peerRegister() public {
         require(peers[msg.sender].addr == address(0));
         
-        Peer storage peer = peers[msg.sender];
+        PeerMetadata storage peer = peers[msg.sender];
         peer.addr = msg.sender;
         peer.reputation = 0;
     }
