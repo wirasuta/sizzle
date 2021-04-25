@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -39,17 +40,25 @@ func createCertificate(country string, organization string, domain string) error
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err != cert.Sign(rsaKey, openssl.EVP_SHA256) {
+		log.Fatal(err)
+	}
 	certPem, err := cert.MarshalPEM()
 	if err != nil {
 		log.Fatal(err)
 	}
+	keyPem, err := rsaKey.MarshalPKCS1PrivateKeyPEM()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	fmt.Println(string(certPem))
+	fmt.Print(string(keyPem))
+	fmt.Print(string(certPem))
 
 	return nil
 }
 
-func publishCertificate(cert *openssl.Certificate) error {
+func publishCertificate(cert *openssl.Certificate, certPrivateKey *openssl.PrivateKey) error {
 	pubKey, err := cert.PublicKey()
 	if err != nil {
 		log.Fatal(err)
@@ -103,15 +112,20 @@ func publishCertificate(cert *openssl.Certificate) error {
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)
-	auth.GasLimit = uint64(200000)
+	auth.GasLimit = uint64(300000)
 	auth.GasPrice = gasPrice
 
-	tx, err := szlTxr.CertPublishRequest(auth, domain, string(pubKeyPem))
+	_, err = szlTxr.CertPublishRequest(auth, domain, string(pubKeyPem))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println(tx.MarshalJSON())
+	signedSzlAddress, err := (*certPrivateKey).SignPKCS1v15(openssl.SHA256_Method, []byte(config.SizzleAddress))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Please add the following entry to %s DNS TXT record: \"sig=%s\"", domain, hex.EncodeToString(signedSzlAddress))
 
 	return nil
 }
@@ -125,14 +139,21 @@ func handleSubmit(ctx *cli.Context) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Print(string(certByte))
+	privateKeyByte, err := ioutil.ReadFile(ctx.Path("privatekey"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	cert, err := openssl.LoadCertificateFromPEM(certByte)
+	if err != nil {
+		log.Println("here")
+		log.Fatal(err)
+	}
+	privateKey, err := openssl.LoadPrivateKeyFromPEM(privateKeyByte)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	publishCertificate(cert)
+	publishCertificate(cert, &privateKey)
 
 	return nil
 }
@@ -174,6 +195,10 @@ func main() {
 				Name:  "submit",
 				Usage: "Submit created self-signed TLS certificate",
 				Flags: []cli.Flag{
+					&cli.PathFlag{
+						Name:    "privatekey",
+						Aliases: []string{"k"},
+					},
 					&cli.PathFlag{
 						Name:    "cert",
 						Aliases: []string{"c"},
