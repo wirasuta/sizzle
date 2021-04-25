@@ -31,7 +31,7 @@ contract Sizzle {
 
     mapping(string => CertMetadata) certs;
     mapping(string => CertParticipation) participations;
-    mapping(address => Peer) peers;
+    mapping(address => PeerMetadata) peers;
     mapping(address => int[]) peersRating;
     
     event CertPublishRequestCreated(address owner, string domain, string pubKey);
