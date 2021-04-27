@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spacemonkeygo/openssl"
@@ -112,6 +113,42 @@ func verify(domain string, pubKey openssl.PublicKey) (bool, error) {
 }
 
 func listen() error {
+	sizzleAddress := common.HexToAddress(config.SizzleAddress)
+	client, err := ethclient.Dial(config.EthClientUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	szlFilterer, err := sizzle.NewSizzleFilterer(sizzleAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	certPublishedChan := make(chan *sizzle.SizzleCertPublishRequestCreated)
+	_, err = szlFilterer.WatchCertPublishRequestCreated(&bind.WatchOpts{}, certPublishedChan)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for cert := range certPublishedChan {
+		domain := cert.Domain
+		publicKey, err := openssl.LoadPublicKeyFromPEM([]byte(cert.PubKey))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ok, err := verify(domain, publicKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if !ok {
+			// TODO: Implement retry with exponential backoff
+			log.Printf("Failed to verify %s ownership\n", domain)
+			deny(domain)
+		} else {
+			endorse(domain)
+		}
+	}
+
 	return nil
 }
 
