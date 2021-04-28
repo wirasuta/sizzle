@@ -130,11 +130,11 @@ func publishCertificate(cert *openssl.Certificate, certPrivateKey *openssl.Priva
 	return nil
 }
 
-func handleGenerate(ctx *cli.Context) error {
+func handleCreate(ctx *cli.Context) error {
 	return createCertificate(ctx.String("country"), ctx.String("organization"), ctx.String("domain"))
 }
 
-func handleSubmit(ctx *cli.Context) error {
+func publishSubmit(ctx *cli.Context) error {
 	certByte, err := ioutil.ReadFile(ctx.Path("cert"))
 	if err != nil {
 		log.Fatal(err)
@@ -170,8 +170,8 @@ func main() {
 		Usage: "Sizzle CLI for web owner",
 		Commands: []*cli.Command{
 			{
-				Name:  "generate",
-				Usage: "Generate self-signed TLS certificate",
+				Name:  "create",
+				Usage: "Create self-signed TLS certificate",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "country",
@@ -189,11 +189,11 @@ func main() {
 						Required: true,
 					},
 				},
-				Action: handleGenerate,
+				Action: handleCreate,
 			},
 			{
-				Name:  "submit",
-				Usage: "Submit created self-signed TLS certificate",
+				Name:  "publish",
+				Usage: "Publish created self-signed TLS certificate",
 				Flags: []cli.Flag{
 					&cli.PathFlag{
 						Name:    "privatekey",
@@ -204,7 +204,7 @@ func main() {
 						Aliases: []string{"c"},
 					},
 				},
-				Action: handleSubmit,
+				Action: publishSubmit,
 			},
 			{
 				Name:  "init",
