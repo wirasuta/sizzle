@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +19,16 @@ import (
 	"github.com/wirasuta/sizzle/peer-client/utils"
 )
 
+const RETRY_VERIFY_MAX = 10
+const RETRY_VERIFY_DURATION = 10 * time.Second
+
 var config *utils.Config
+
+type SizzleCertPublishRequestRetry struct {
+	Domain         string
+	PublicKey      openssl.PublicKey
+	RetryRemaining int
+}
 
 func register() error {
 	privateKey := utils.LoadPrivateKey(config)
@@ -127,6 +137,40 @@ func listen() error {
 	if err != nil {
 		log.Fatal(err)
 	}
+	certRetryChan := make(chan *SizzleCertPublishRequestRetry)
+
+	go func() {
+		for cert := range certRetryChan {
+			domain := cert.Domain
+			publicKey := cert.PublicKey
+			retryRemaining := cert.RetryRemaining
+
+			ok, err := verify(domain, publicKey)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if !ok {
+				log.Printf("Failed to verify %s ownership\n", domain)
+
+				if retryRemaining == 0 {
+					deny(domain)
+				} else {
+					go func() {
+						sleepDuration := (RETRY_VERIFY_MAX - retryRemaining) * int(RETRY_VERIFY_DURATION)
+						time.Sleep(time.Duration(sleepDuration))
+						certRetryChan <- &SizzleCertPublishRequestRetry{
+							Domain:         domain,
+							PublicKey:      publicKey,
+							RetryRemaining: retryRemaining - 1,
+						}
+					}()
+				}
+			} else {
+				endorse(domain)
+			}
+		}
+	}()
 
 	for cert := range certPublishedChan {
 		domain := cert.Domain
@@ -141,9 +185,12 @@ func listen() error {
 		}
 
 		if !ok {
-			// TODO: Implement retry with exponential backoff
 			log.Printf("Failed to verify %s ownership\n", domain)
-			deny(domain)
+			certRetryChan <- &SizzleCertPublishRequestRetry{
+				Domain:         domain,
+				PublicKey:      publicKey,
+				RetryRemaining: RETRY_VERIFY_MAX,
+			}
 		} else {
 			endorse(domain)
 		}
