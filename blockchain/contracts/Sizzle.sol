@@ -25,7 +25,7 @@ contract Sizzle {
     }
 
     int REPUTATION_THRESHOLD = 2;
-    int PEER_REPUTATION_RATING_COUNT = 50;
+    int PEER_REPUTATION_RATING_COUNT = 30;
     int PEER_REPUTATION_MAX = 100;
     int PEER_REPUTATION_PRECISION = 10000;
 
@@ -192,5 +192,9 @@ contract Sizzle {
         PeerMetadata storage peer = peers[msg.sender];
         peer.addr = msg.sender;
         peer.reputation = 0;
+    }
+    
+    function peerQuery(address addr) public view returns (PeerMetadata memory peer) {
+        return peers[addr];
     }
 }
