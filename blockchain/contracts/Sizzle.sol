@@ -38,6 +38,16 @@ contract Sizzle {
     event CertValid(address owner, string domain, string pubKey, int reputation);
     event CertEndorsed(string domain, address peer);
     event CertDenied(string domain, address peer);
+
+    constructor() {
+        PeerMetadata storage peer = peers[msg.sender];
+        peer.addr = msg.sender;
+        peer.reputation = PEER_REPUTATION_MAX;
+
+        for (int i = 0; i < PEER_REPUTATION_RATING_COUNT; i++) {
+            peersRating[msg.sender].push(1);
+        }
+    }
     
     function certPublishRequest(string memory domain, string memory pubKey) public {
         require(certs[domain].owner == address(0));
@@ -113,11 +123,11 @@ contract Sizzle {
         }
         int significantRatingLen = ratingLen - startIdx;
 
-        int sumF = (significantRatingLen/2) * (1 + significantRatingLen);
+        int sumF = (1 + significantRatingLen) / 2;
         int sumR = 0;
         if (sumF != 0) {
             for (int i = startIdx; i < ratingLen; i++) {
-                int p = (PEER_REPUTATION_PRECISION * i / significantRatingLen) / sumF;
+                int p = (PEER_REPUTATION_PRECISION * (i + 1) / significantRatingLen) / sumF;
                 sumR += p * peerRating[uint(i)];
             }
         }
