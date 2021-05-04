@@ -62,7 +62,7 @@ func endorse(domain string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := utils.GenerateAuthBind(privateKey, client, 125000)
+	auth := utils.GenerateAuthBind(privateKey, client, 250000)
 
 	_, err = szlTxr.CertEndorseByPeer(auth, domain)
 	if err != nil {
@@ -83,7 +83,7 @@ func deny(domain string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := utils.GenerateAuthBind(privateKey, client, 125000)
+	auth := utils.GenerateAuthBind(privateKey, client, 250000)
 
 	_, err = szlTxr.CertDenyByPeer(auth, domain)
 	if err != nil {
@@ -117,6 +117,10 @@ func verify(domain string, pubKey openssl.PublicKey) (bool, error) {
 				log.Println(err)
 			}
 		}
+	}
+
+	if !verified {
+		log.Printf("Failed to verify %s ownership\n", domain)
 	}
 
 	return verified, nil

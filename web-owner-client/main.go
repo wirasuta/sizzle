@@ -125,7 +125,7 @@ func publishCertificate(cert *openssl.Certificate, certPrivateKey *openssl.Priva
 		log.Fatal(err)
 	}
 
-	log.Printf("Please add the following entry to %s DNS TXT record: \"sig=%s\"", domain, hex.EncodeToString(signedSzlAddress))
+	log.Printf("Please add the following entry to %s DNS TXT record: \"sig=%s\"\n", domain, hex.EncodeToString(signedSzlAddress))
 
 	return nil
 }
@@ -134,7 +134,7 @@ func handleCreate(ctx *cli.Context) error {
 	return createCertificate(ctx.String("country"), ctx.String("organization"), ctx.String("domain"))
 }
 
-func publishSubmit(ctx *cli.Context) error {
+func handlePublish(ctx *cli.Context) error {
 	certByte, err := ioutil.ReadFile(ctx.Path("cert"))
 	if err != nil {
 		log.Fatal(err)
@@ -204,7 +204,7 @@ func main() {
 						Aliases: []string{"c"},
 					},
 				},
-				Action: publishSubmit,
+				Action: handlePublish,
 			},
 			{
 				Name:  "init",

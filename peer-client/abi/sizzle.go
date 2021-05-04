@@ -36,8 +36,14 @@ type SizzleCertMetadata struct {
 	Valid         bool
 }
 
+// SizzlePeerMetadata is an auto generated low-level Go binding around an user-defined struct.
+type SizzlePeerMetadata struct {
+	Addr       common.Address
+	Reputation *big.Int
+}
+
 // SizzleABI is the input ABI used to generate the binding from.
-const SizzleABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertDenied\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertEndorsed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"CertPublishRequestCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"name\":\"CertValid\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"certPublishRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"},{\"internalType\":\"int256\",\"name\":\"reputationMax\",\"type\":\"int256\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"internalType\":\"structSizzle.CertMetadata\",\"name\":\"cert\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"peerRegister\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const SizzleABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertDenied\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertEndorsed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"CertPublishRequestCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"name\":\"CertValid\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"certPublishRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"},{\"internalType\":\"int256\",\"name\":\"reputationMax\",\"type\":\"int256\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"internalType\":\"structSizzle.CertMetadata\",\"name\":\"cert\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"peerRegister\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"peerQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"internalType\":\"structSizzle.PeerMetadata\",\"name\":\"peer\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Sizzle is an auto generated Go binding around an Ethereum contract.
 type Sizzle struct {
@@ -210,6 +216,37 @@ func (_Sizzle *SizzleSession) CertQuery(domain string) (SizzleCertMetadata, erro
 // Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,bool) cert)
 func (_Sizzle *SizzleCallerSession) CertQuery(domain string) (SizzleCertMetadata, error) {
 	return _Sizzle.Contract.CertQuery(&_Sizzle.CallOpts, domain)
+}
+
+// PeerQuery is a free data retrieval call binding the contract method 0xf4dcc32d.
+//
+// Solidity: function peerQuery(address addr) view returns((address,int256) peer)
+func (_Sizzle *SizzleCaller) PeerQuery(opts *bind.CallOpts, addr common.Address) (SizzlePeerMetadata, error) {
+	var out []interface{}
+	err := _Sizzle.contract.Call(opts, &out, "peerQuery", addr)
+
+	if err != nil {
+		return *new(SizzlePeerMetadata), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(SizzlePeerMetadata)).(*SizzlePeerMetadata)
+
+	return out0, err
+
+}
+
+// PeerQuery is a free data retrieval call binding the contract method 0xf4dcc32d.
+//
+// Solidity: function peerQuery(address addr) view returns((address,int256) peer)
+func (_Sizzle *SizzleSession) PeerQuery(addr common.Address) (SizzlePeerMetadata, error) {
+	return _Sizzle.Contract.PeerQuery(&_Sizzle.CallOpts, addr)
+}
+
+// PeerQuery is a free data retrieval call binding the contract method 0xf4dcc32d.
+//
+// Solidity: function peerQuery(address addr) view returns((address,int256) peer)
+func (_Sizzle *SizzleCallerSession) PeerQuery(addr common.Address) (SizzlePeerMetadata, error) {
+	return _Sizzle.Contract.PeerQuery(&_Sizzle.CallOpts, addr)
 }
 
 // CertDenyByPeer is a paid mutator transaction binding the contract method 0x0f873b70.
