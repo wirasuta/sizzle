@@ -55,7 +55,7 @@ func loadAndVerify(cert *openssl.Certificate, certPath string) error {
 			log.Fatal(err)
 		}
 
-		if certMetadata.Valid {
+		if certMetadata.Status == sizzle.CertStatusValid {
 			err = certUtil.AddSSL(domain, certPath)
 			if err != nil {
 				log.Fatal(err)

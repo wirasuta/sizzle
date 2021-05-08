@@ -33,7 +33,7 @@ type SizzleCertMetadata struct {
 	PubKey        string
 	Reputation    *big.Int
 	ReputationMax *big.Int
-	Valid         bool
+	Status        uint8
 }
 
 // SizzlePeerMetadata is an auto generated low-level Go binding around an user-defined struct.
@@ -43,7 +43,7 @@ type SizzlePeerMetadata struct {
 }
 
 // SizzleABI is the input ABI used to generate the binding from.
-const SizzleABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertDenied\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertEndorsed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"CertPublishRequestCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"name\":\"CertValid\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"certPublishRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"},{\"internalType\":\"int256\",\"name\":\"reputationMax\",\"type\":\"int256\"},{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"internalType\":\"structSizzle.CertMetadata\",\"name\":\"cert\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"peerRegister\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"peerQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"internalType\":\"structSizzle.PeerMetadata\",\"name\":\"peer\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const SizzleABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertDenied\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"CertEndorsed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"CertPublishRequestCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"CertRekeyed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"CertRevoked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"name\":\"CertValid\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"certPublishRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"}],\"name\":\"certRekey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certRevoke\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByPeer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certEndorseByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certDenyByUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"}],\"name\":\"certQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"domain\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"pubKey\",\"type\":\"string\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"},{\"internalType\":\"int256\",\"name\":\"reputationMax\",\"type\":\"int256\"},{\"internalType\":\"enumSizzle.CertStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structSizzle.CertMetadata\",\"name\":\"cert\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"peerRegister\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"peerQuery\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"int256\",\"name\":\"reputation\",\"type\":\"int256\"}],\"internalType\":\"structSizzle.PeerMetadata\",\"name\":\"peer\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]"
 
 // Sizzle is an auto generated Go binding around an Ethereum contract.
 type Sizzle struct {
@@ -189,7 +189,7 @@ func (_Sizzle *SizzleTransactorRaw) Transact(opts *bind.TransactOpts, method str
 
 // CertQuery is a free data retrieval call binding the contract method 0x55476f9d.
 //
-// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,bool) cert)
+// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,uint8) cert)
 func (_Sizzle *SizzleCaller) CertQuery(opts *bind.CallOpts, domain string) (SizzleCertMetadata, error) {
 	var out []interface{}
 	err := _Sizzle.contract.Call(opts, &out, "certQuery", domain)
@@ -206,14 +206,14 @@ func (_Sizzle *SizzleCaller) CertQuery(opts *bind.CallOpts, domain string) (Sizz
 
 // CertQuery is a free data retrieval call binding the contract method 0x55476f9d.
 //
-// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,bool) cert)
+// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,uint8) cert)
 func (_Sizzle *SizzleSession) CertQuery(domain string) (SizzleCertMetadata, error) {
 	return _Sizzle.Contract.CertQuery(&_Sizzle.CallOpts, domain)
 }
 
 // CertQuery is a free data retrieval call binding the contract method 0x55476f9d.
 //
-// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,bool) cert)
+// Solidity: function certQuery(string domain) view returns((address,string,string,int256,int256,uint8) cert)
 func (_Sizzle *SizzleCallerSession) CertQuery(domain string) (SizzleCertMetadata, error) {
 	return _Sizzle.Contract.CertQuery(&_Sizzle.CallOpts, domain)
 }
@@ -352,6 +352,48 @@ func (_Sizzle *SizzleSession) CertPublishRequest(domain string, pubKey string) (
 // Solidity: function certPublishRequest(string domain, string pubKey) returns()
 func (_Sizzle *SizzleTransactorSession) CertPublishRequest(domain string, pubKey string) (*types.Transaction, error) {
 	return _Sizzle.Contract.CertPublishRequest(&_Sizzle.TransactOpts, domain, pubKey)
+}
+
+// CertRekey is a paid mutator transaction binding the contract method 0x91d62f9f.
+//
+// Solidity: function certRekey(string domain, string pubKey) returns()
+func (_Sizzle *SizzleTransactor) CertRekey(opts *bind.TransactOpts, domain string, pubKey string) (*types.Transaction, error) {
+	return _Sizzle.contract.Transact(opts, "certRekey", domain, pubKey)
+}
+
+// CertRekey is a paid mutator transaction binding the contract method 0x91d62f9f.
+//
+// Solidity: function certRekey(string domain, string pubKey) returns()
+func (_Sizzle *SizzleSession) CertRekey(domain string, pubKey string) (*types.Transaction, error) {
+	return _Sizzle.Contract.CertRekey(&_Sizzle.TransactOpts, domain, pubKey)
+}
+
+// CertRekey is a paid mutator transaction binding the contract method 0x91d62f9f.
+//
+// Solidity: function certRekey(string domain, string pubKey) returns()
+func (_Sizzle *SizzleTransactorSession) CertRekey(domain string, pubKey string) (*types.Transaction, error) {
+	return _Sizzle.Contract.CertRekey(&_Sizzle.TransactOpts, domain, pubKey)
+}
+
+// CertRevoke is a paid mutator transaction binding the contract method 0x430ca80c.
+//
+// Solidity: function certRevoke(string domain) returns()
+func (_Sizzle *SizzleTransactor) CertRevoke(opts *bind.TransactOpts, domain string) (*types.Transaction, error) {
+	return _Sizzle.contract.Transact(opts, "certRevoke", domain)
+}
+
+// CertRevoke is a paid mutator transaction binding the contract method 0x430ca80c.
+//
+// Solidity: function certRevoke(string domain) returns()
+func (_Sizzle *SizzleSession) CertRevoke(domain string) (*types.Transaction, error) {
+	return _Sizzle.Contract.CertRevoke(&_Sizzle.TransactOpts, domain)
+}
+
+// CertRevoke is a paid mutator transaction binding the contract method 0x430ca80c.
+//
+// Solidity: function certRevoke(string domain) returns()
+func (_Sizzle *SizzleTransactorSession) CertRevoke(domain string) (*types.Transaction, error) {
+	return _Sizzle.Contract.CertRevoke(&_Sizzle.TransactOpts, domain)
 }
 
 // PeerRegister is a paid mutator transaction binding the contract method 0xa4394810.
@@ -775,6 +817,277 @@ func (_Sizzle *SizzleFilterer) WatchCertPublishRequestCreated(opts *bind.WatchOp
 func (_Sizzle *SizzleFilterer) ParseCertPublishRequestCreated(log types.Log) (*SizzleCertPublishRequestCreated, error) {
 	event := new(SizzleCertPublishRequestCreated)
 	if err := _Sizzle.contract.UnpackLog(event, "CertPublishRequestCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// SizzleCertRekeyedIterator is returned from FilterCertRekeyed and is used to iterate over the raw logs and unpacked data for CertRekeyed events raised by the Sizzle contract.
+type SizzleCertRekeyedIterator struct {
+	Event *SizzleCertRekeyed // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *SizzleCertRekeyedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(SizzleCertRekeyed)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(SizzleCertRekeyed)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *SizzleCertRekeyedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *SizzleCertRekeyedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// SizzleCertRekeyed represents a CertRekeyed event raised by the Sizzle contract.
+type SizzleCertRekeyed struct {
+	Owner  common.Address
+	Domain string
+	PubKey string
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterCertRekeyed is a free log retrieval operation binding the contract event 0x51faf9fd7c283b69cd1e58679124dcb9c23d9d625955de21b289c5439a4b02a4.
+//
+// Solidity: event CertRekeyed(address owner, string domain, string pubKey)
+func (_Sizzle *SizzleFilterer) FilterCertRekeyed(opts *bind.FilterOpts) (*SizzleCertRekeyedIterator, error) {
+
+	logs, sub, err := _Sizzle.contract.FilterLogs(opts, "CertRekeyed")
+	if err != nil {
+		return nil, err
+	}
+	return &SizzleCertRekeyedIterator{contract: _Sizzle.contract, event: "CertRekeyed", logs: logs, sub: sub}, nil
+}
+
+// WatchCertRekeyed is a free log subscription operation binding the contract event 0x51faf9fd7c283b69cd1e58679124dcb9c23d9d625955de21b289c5439a4b02a4.
+//
+// Solidity: event CertRekeyed(address owner, string domain, string pubKey)
+func (_Sizzle *SizzleFilterer) WatchCertRekeyed(opts *bind.WatchOpts, sink chan<- *SizzleCertRekeyed) (event.Subscription, error) {
+
+	logs, sub, err := _Sizzle.contract.WatchLogs(opts, "CertRekeyed")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(SizzleCertRekeyed)
+				if err := _Sizzle.contract.UnpackLog(event, "CertRekeyed", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCertRekeyed is a log parse operation binding the contract event 0x51faf9fd7c283b69cd1e58679124dcb9c23d9d625955de21b289c5439a4b02a4.
+//
+// Solidity: event CertRekeyed(address owner, string domain, string pubKey)
+func (_Sizzle *SizzleFilterer) ParseCertRekeyed(log types.Log) (*SizzleCertRekeyed, error) {
+	event := new(SizzleCertRekeyed)
+	if err := _Sizzle.contract.UnpackLog(event, "CertRekeyed", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// SizzleCertRevokedIterator is returned from FilterCertRevoked and is used to iterate over the raw logs and unpacked data for CertRevoked events raised by the Sizzle contract.
+type SizzleCertRevokedIterator struct {
+	Event *SizzleCertRevoked // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *SizzleCertRevokedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(SizzleCertRevoked)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(SizzleCertRevoked)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *SizzleCertRevokedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *SizzleCertRevokedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// SizzleCertRevoked represents a CertRevoked event raised by the Sizzle contract.
+type SizzleCertRevoked struct {
+	Owner  common.Address
+	Domain string
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterCertRevoked is a free log retrieval operation binding the contract event 0x56acac1bf13f3bbba3d9b51569ba945278d55a11b68e7db8f9203fd4b80aa5a3.
+//
+// Solidity: event CertRevoked(address owner, string domain)
+func (_Sizzle *SizzleFilterer) FilterCertRevoked(opts *bind.FilterOpts) (*SizzleCertRevokedIterator, error) {
+
+	logs, sub, err := _Sizzle.contract.FilterLogs(opts, "CertRevoked")
+	if err != nil {
+		return nil, err
+	}
+	return &SizzleCertRevokedIterator{contract: _Sizzle.contract, event: "CertRevoked", logs: logs, sub: sub}, nil
+}
+
+// WatchCertRevoked is a free log subscription operation binding the contract event 0x56acac1bf13f3bbba3d9b51569ba945278d55a11b68e7db8f9203fd4b80aa5a3.
+//
+// Solidity: event CertRevoked(address owner, string domain)
+func (_Sizzle *SizzleFilterer) WatchCertRevoked(opts *bind.WatchOpts, sink chan<- *SizzleCertRevoked) (event.Subscription, error) {
+
+	logs, sub, err := _Sizzle.contract.WatchLogs(opts, "CertRevoked")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(SizzleCertRevoked)
+				if err := _Sizzle.contract.UnpackLog(event, "CertRevoked", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCertRevoked is a log parse operation binding the contract event 0x56acac1bf13f3bbba3d9b51569ba945278d55a11b68e7db8f9203fd4b80aa5a3.
+//
+// Solidity: event CertRevoked(address owner, string domain)
+func (_Sizzle *SizzleFilterer) ParseCertRevoked(log types.Log) (*SizzleCertRevoked, error) {
+	event := new(SizzleCertRevoked)
+	if err := _Sizzle.contract.UnpackLog(event, "CertRevoked", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
