@@ -1,17 +1,17 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.7.6 <0.9.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract Sizzle {
-    enum CertStatus { Invalid, Valid, Revoked }
+    enum CertStatus {Invalid, Valid, Revoked}
 
     struct CertMetadata {
         address owner;
         string domain;
         string pubKey;
-        int reputation;
-        int reputationMax;
+        int256 reputation;
+        int256 reputationMax;
         CertStatus status;
     }
 
@@ -21,25 +21,34 @@ contract Sizzle {
         EnumerableSet.AddressSet denier;
     }
 
-    struct PeerMetadata{
+    struct PeerMetadata {
         address addr;
-        int reputation;
+        int256 reputation;
     }
 
-    int REPUTATION_THRESHOLD = 2;
-    int PEER_REPUTATION_RATING_COUNT = 30;
-    int PEER_REPUTATION_MAX = 100;
-    int PEER_REPUTATION_PRECISION = 10000;
+    int256 REPUTATION_THRESHOLD = 2;
+    int256 PEER_REPUTATION_RATING_COUNT = 30;
+    int256 PEER_REPUTATION_MAX = 100;
+    int256 PEER_REPUTATION_PRECISION = 10000;
 
     mapping(string => CertMetadata) certs;
     mapping(string => CertParticipation) participations;
     mapping(address => PeerMetadata) peers;
-    mapping(address => int[]) peersRating;
-    
-    event CertPublishRequestCreated(address owner, string domain, string pubKey);
+    mapping(address => int256[]) peersRating;
+
+    event CertPublishRequestCreated(
+        address owner,
+        string domain,
+        string pubKey
+    );
     event CertRekeyed(address owner, string domain, string pubKey);
     event CertRevoked(address owner, string domain);
-    event CertValid(address owner, string domain, string pubKey, int reputation);
+    event CertValid(
+        address owner,
+        string domain,
+        string pubKey,
+        int256 reputation
+    );
     event CertEndorsed(string domain, address peer);
     event CertDenied(string domain, address peer);
 
@@ -47,13 +56,14 @@ contract Sizzle {
         PeerMetadata storage peer = peers[msg.sender];
         peer.addr = msg.sender;
         peer.reputation = PEER_REPUTATION_MAX;
-
-        for (int i = 0; i < PEER_REPUTATION_RATING_COUNT; i++) {
+        for (int256 i = 0; i < PEER_REPUTATION_RATING_COUNT; i++) {
             peersRating[msg.sender].push(1);
         }
     }
-    
-    function certPublishRequest(string memory domain, string memory pubKey) public {
+
+    function certPublishRequest(string memory domain, string memory pubKey)
+        public
+    {
         CertMetadata storage c = certs[domain];
         require(c.owner == address(0));
 
@@ -69,15 +79,19 @@ contract Sizzle {
 
     function certRekey(string memory domain, string memory pubKey) public {
         CertMetadata storage c = certs[domain];
-        require(c.owner == address(0));
-        
+        require(c.owner == msg.sender);
+
         c.pubKey = pubKey;
+        c.reputation = 0;
+        c.reputationMax = 0;
+        
         emit CertRekeyed(c.owner, c.domain, c.pubKey);
     }
 
     function certRevoke(string memory domain) public {
         CertMetadata storage c = certs[domain];
-        require(c.owner == address(0));
+        require(c.owner == msg.sender);
+        require(c.status != CertStatus.Revoked);
 
         c.status = CertStatus.Revoked;
         emit CertRevoked(c.owner, c.domain);
@@ -85,8 +99,12 @@ contract Sizzle {
 
     function calculateCertValidity(string memory domain) private {
         CertMetadata storage c = certs[domain];
-        
-        if (c.status != CertStatus.Valid && c.reputation * REPUTATION_THRESHOLD >= c.reputationMax) {
+
+        if (
+            c.status != CertStatus.Revoked &&
+            c.status != CertStatus.Valid &&
+            c.reputation * REPUTATION_THRESHOLD >= c.reputationMax
+        ) {
             c.status = CertStatus.Valid;
             emit CertValid(c.owner, c.domain, c.pubKey, c.reputation);
         }
@@ -135,25 +153,28 @@ contract Sizzle {
     }
 
     function calculatePeerReputation(address addr) private {
-        int[] storage peerRating = peersRating[addr];
-        int ratingLen = int(peerRating.length);
-        int startIdx = ratingLen - PEER_REPUTATION_RATING_COUNT;
+        int256[] storage peerRating = peersRating[addr];
+        int256 ratingLen = int256(peerRating.length);
+        int256 startIdx = ratingLen - PEER_REPUTATION_RATING_COUNT;
         if (startIdx < 0) {
             startIdx = 0;
         }
-        int significantRatingLen = ratingLen - startIdx;
-
-        int sumF = (1 + significantRatingLen) / 2;
-        int sumR = 0;
+        int256 significantRatingLen = ratingLen - startIdx;
+        int256 sumF = (1 + significantRatingLen) / 2;
+        int256 sumR = 0;
         if (sumF != 0) {
-            for (int i = startIdx; i < ratingLen; i++) {
-                int p = (PEER_REPUTATION_PRECISION * (i + 1) / significantRatingLen) / sumF;
-                sumR += p * peerRating[uint(i)];
+            for (int256 i = startIdx; i < ratingLen; i++) {
+                int256 p =
+                    ((PEER_REPUTATION_PRECISION * (i + 1)) /
+                        significantRatingLen) / sumF;
+                sumR += p * peerRating[uint256(i)];
             }
         }
 
         PeerMetadata storage peer = peers[addr];
-        peer.reputation = sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
+        peer.reputation =
+            sumR /
+            (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
     }
 
     function certEndorseByUser(string memory domain) public {
@@ -166,16 +187,16 @@ contract Sizzle {
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
         require(!EnumerableSet.contains(participation.denier, msg.sender));
 
-        int rating = 1;
-        uint endorserLen = EnumerableSet.length(participation.endorser);
-        for (uint i = 0; i < endorserLen; i++) {
+        int256 rating = 1;
+        uint256 endorserLen = EnumerableSet.length(participation.endorser);
+        for (uint256 i = 0; i < endorserLen; i++) {
             address addr = EnumerableSet.at(participation.endorser, i);
             peersRating[addr].push(rating);
             calculatePeerReputation(addr);
         }
-        
-        uint denierLen = EnumerableSet.length(participation.denier);
-        for (uint i = 0; i < denierLen; i++) {
+
+        uint256 denierLen = EnumerableSet.length(participation.denier);
+        for (uint256 i = 0; i < denierLen; i++) {
             address addr = EnumerableSet.at(participation.denier, i);
             peersRating[addr].push(-1 * rating);
             calculatePeerReputation(addr);
@@ -194,16 +215,16 @@ contract Sizzle {
         require(!EnumerableSet.contains(participation.endorser, msg.sender));
         require(!EnumerableSet.contains(participation.denier, msg.sender));
 
-        int rating = -1;
-        uint endorserLen = EnumerableSet.length(participation.endorser);
-        for (uint i = 0; i < endorserLen; i++) {
+        int256 rating = -1;
+        uint256 endorserLen = EnumerableSet.length(participation.endorser);
+        for (uint256 i = 0; i < endorserLen; i++) {
             address addr = EnumerableSet.at(participation.endorser, i);
             peersRating[addr].push(rating);
             calculatePeerReputation(addr);
         }
 
-        uint denierLen = EnumerableSet.length(participation.denier);
-        for (uint i = 0; i < denierLen; i++) {
+        uint256 denierLen = EnumerableSet.length(participation.denier);
+        for (uint256 i = 0; i < denierLen; i++) {
             address addr = EnumerableSet.at(participation.denier, i);
             peersRating[addr].push(-1 * rating);
             calculatePeerReputation(addr);
@@ -212,19 +233,27 @@ contract Sizzle {
         EnumerableSet.add(participation.endUser, msg.sender);
     }
 
-    function certQuery(string memory domain) public view returns (CertMetadata memory cert) {
+    function certQuery(string memory domain)
+        public
+        view
+        returns (CertMetadata memory cert)
+    {
         return certs[domain];
     }
 
     function peerRegister() public {
         PeerMetadata storage peer = peers[msg.sender];
         require(peer.addr == address(0));
-        
+
         peer.addr = msg.sender;
         peer.reputation = 0;
     }
-    
-    function peerQuery(address addr) public view returns (PeerMetadata memory peer) {
+
+    function peerQuery(address addr)
+        public
+        view
+        returns (PeerMetadata memory peer)
+    {
         return peers[addr];
     }
 }
