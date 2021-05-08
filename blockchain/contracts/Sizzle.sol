@@ -4,13 +4,15 @@ pragma solidity >=0.7.6 <0.9.0;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract Sizzle {
+    enum CertStatus { Invalid, Valid, Revoked }
+
     struct CertMetadata {
         address owner;
         string domain;
         string pubKey;
         int reputation;
         int reputationMax;
-        bool valid;
+        CertStatus status;
     }
 
     struct CertParticipation {
@@ -35,6 +37,8 @@ contract Sizzle {
     mapping(address => int[]) peersRating;
     
     event CertPublishRequestCreated(address owner, string domain, string pubKey);
+    event CertRekeyed(address owner, string domain, string pubKey);
+    event CertRevoked(address owner, string domain);
     event CertValid(address owner, string domain, string pubKey, int reputation);
     event CertEndorsed(string domain, address peer);
     event CertDenied(string domain, address peer);
@@ -50,24 +54,40 @@ contract Sizzle {
     }
     
     function certPublishRequest(string memory domain, string memory pubKey) public {
-        require(certs[domain].owner == address(0));
-
         CertMetadata storage c = certs[domain];
+        require(c.owner == address(0));
+
         c.owner = msg.sender;
         c.domain = domain;
         c.pubKey = pubKey;
         c.reputation = 0;
         c.reputationMax = 0;
-        c.valid = false;
+        c.status = CertStatus.Invalid;
 
         emit CertPublishRequestCreated(c.owner, c.domain, c.pubKey);
+    }
+
+    function certRekey(string memory domain, string memory pubKey) public {
+        CertMetadata storage c = certs[domain];
+        require(c.owner == address(0));
+        
+        c.pubKey = pubKey;
+        emit CertRekeyed(c.owner, c.domain, c.pubKey);
+    }
+
+    function certRevoke(string memory domain) public {
+        CertMetadata storage c = certs[domain];
+        require(c.owner == address(0));
+
+        c.status = CertStatus.Revoked;
+        emit CertRevoked(c.owner, c.domain);
     }
 
     function calculateCertValidity(string memory domain) private {
         CertMetadata storage c = certs[domain];
         
-        if (!c.valid && c.reputation * REPUTATION_THRESHOLD >= c.reputationMax) {
-            c.valid = true;
+        if (c.status != CertStatus.Valid && c.reputation * REPUTATION_THRESHOLD >= c.reputationMax) {
+            c.status = CertStatus.Valid;
             emit CertValid(c.owner, c.domain, c.pubKey, c.reputation);
         }
     }
@@ -197,9 +217,9 @@ contract Sizzle {
     }
 
     function peerRegister() public {
-        require(peers[msg.sender].addr == address(0));
-        
         PeerMetadata storage peer = peers[msg.sender];
+        require(peer.addr == address(0));
+        
         peer.addr = msg.sender;
         peer.reputation = 0;
     }
