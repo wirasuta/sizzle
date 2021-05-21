@@ -1,3 +1,6 @@
 node_modules/
 unused_contracts/
 build/
+
+*keys.txt
+*.log

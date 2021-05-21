@@ -2,6 +2,7 @@
 pragma solidity >=0.7.6 <0.9.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./SignedMath.sol";
 
 contract Sizzle {
     enum CertStatus {Invalid, Valid, Revoked}
@@ -84,7 +85,7 @@ contract Sizzle {
         c.pubKey = pubKey;
         c.reputation = 0;
         c.reputationMax = 0;
-        
+
         emit CertRekeyed(c.owner, c.domain, c.pubKey);
     }
 
@@ -126,9 +127,8 @@ contract Sizzle {
         cert.reputationMax += PEER_REPUTATION_MAX;
         EnumerableSet.add(participation.endorser, msg.sender);
 
-        calculateCertValidity(domain);
-
         emit CertEndorsed(domain, peer.addr);
+        calculateCertValidity(domain);
     }
 
     function certDenyByPeer(string memory domain) public {
@@ -147,9 +147,8 @@ contract Sizzle {
         cert.reputationMax += PEER_REPUTATION_MAX;
         EnumerableSet.add(participation.denier, msg.sender);
 
-        calculateCertValidity(domain);
-
         emit CertDenied(domain, peer.addr);
+        calculateCertValidity(domain);
     }
 
     function calculatePeerReputation(address addr) private {
@@ -160,21 +159,22 @@ contract Sizzle {
             startIdx = 0;
         }
         int256 significantRatingLen = ratingLen - startIdx;
-        int256 sumF = (1 + significantRatingLen) / 2;
+        int256 sumF =
+            (((startIdx + 1) / (ratingLen + 1) + 1) * significantRatingLen) / 2;
         int256 sumR = 0;
         if (sumF != 0) {
             for (int256 i = startIdx; i < ratingLen; i++) {
                 int256 p =
-                    ((PEER_REPUTATION_PRECISION * (i + 1)) /
-                        significantRatingLen) / sumF;
+                    ((PEER_REPUTATION_PRECISION * (i + 1)) / ratingLen) / sumF;
                 sumR += p * peerRating[uint256(i)];
             }
         }
+        int256 reputation =
+            sumR / (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
+        reputation = SignedMath.max(0, SignedMath.min(100, reputation));
 
         PeerMetadata storage peer = peers[addr];
-        peer.reputation =
-            sumR /
-            (PEER_REPUTATION_PRECISION / PEER_REPUTATION_MAX);
+        peer.reputation = reputation;
     }
 
     function certEndorseByUser(string memory domain) public {
