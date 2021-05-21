@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -23,6 +24,7 @@ const RETRY_VERIFY_MAX = 10
 const RETRY_VERIFY_DURATION = 10 * time.Second
 
 var config *utils.Config
+var verbose bool
 
 type SizzleCertPublishRequestRetry struct {
 	Domain         string
@@ -142,12 +144,14 @@ func listen() error {
 		log.Fatal(err)
 	}
 	certRetryChan := make(chan *SizzleCertPublishRequestRetry)
-
+	utils.VerboseTime("start listen", verbose)
 	go func() {
 		for cert := range certRetryChan {
 			domain := cert.Domain
 			publicKey := cert.PublicKey
 			retryRemaining := cert.RetryRemaining
+
+			utils.VerboseTime(fmt.Sprintf("listen retry %s-%d", domain, retryRemaining), verbose)
 
 			ok, err := verify(domain, publicKey)
 			if err != nil {
@@ -178,6 +182,7 @@ func listen() error {
 
 	for cert := range certPublishedChan {
 		domain := cert.Domain
+		utils.VerboseTime(fmt.Sprintf("listen %s", domain), verbose)
 		publicKey, err := openssl.LoadPublicKeyFromPEM([]byte(cert.PubKey))
 		if err != nil {
 			log.Fatal(err)
@@ -189,7 +194,6 @@ func listen() error {
 		}
 
 		if !ok {
-			log.Printf("Failed to verify %s ownership\n", domain)
 			certRetryChan <- &SizzleCertPublishRequestRetry{
 				Domain:         domain,
 				PublicKey:      publicKey,
@@ -204,20 +208,34 @@ func listen() error {
 }
 
 func handleRegister(ctx *cli.Context) error {
-	return register()
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleRegister", verbose)
+	err := register()
+	utils.VerboseTime("handleRegister end", verbose)
+	return err
 }
 
 func handleEndorse(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleEndorse", verbose)
 	domain := ctx.String("domain")
-	return endorse(domain)
+	err := endorse(domain)
+	utils.VerboseTime("handleEndorse end", verbose)
+	return err
 }
 
 func handleDeny(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleDeny", verbose)
 	domain := ctx.String("domain")
-	return deny(domain)
+	err := deny(domain)
+	utils.VerboseTime("handleDeny end", verbose)
+	return err
 }
 
 func handleVerify(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleVerify", verbose)
 	domain := ctx.String("domain")
 	pubKeyByte, err := ioutil.ReadFile(ctx.Path("publickey"))
 	if err != nil {
@@ -236,11 +254,12 @@ func handleVerify(ctx *cli.Context) error {
 	if success != true {
 		log.Fatal("Validation failed")
 	}
-
+	utils.VerboseTime("handleVerify end", verbose)
 	return nil
 }
 
 func handleListen(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
 	return listen()
 }
 
@@ -249,6 +268,12 @@ func main() {
 	app := &cli.App{
 		Name:  "sizzle-peer",
 		Usage: "Sizzle CLI for verifying peer",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:   "register",

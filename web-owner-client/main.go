@@ -19,6 +19,7 @@ import (
 )
 
 var config *utils.Config
+var verbose bool
 
 func createCertificate(country string, organization string, domain string) error {
 	rsaKey, err := openssl.GenerateRSAKey(1024)
@@ -83,7 +84,7 @@ func publishCertificate(cert *openssl.Certificate, certPrivateKey *openssl.Priva
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := utils.GenerateAuthBind(privateKey, client, 300000)
+	auth := utils.GenerateAuthBind(privateKey, client, 500000)
 
 	_, err = szlTxr.CertPublishRequest(auth, domain, string(pubKeyPem))
 	if err != nil {
@@ -166,10 +167,16 @@ func revokeCertificate(domain string) error {
 }
 
 func handleCreate(ctx *cli.Context) error {
-	return createCertificate(ctx.String("country"), ctx.String("organization"), ctx.String("domain"))
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleCreate", verbose)
+	err := createCertificate(ctx.String("country"), ctx.String("organization"), ctx.String("domain"))
+	utils.VerboseTime("handlePublish end", verbose)
+	return err
 }
 
 func handlePublish(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handlePublish", verbose)
 	certByte, err := ioutil.ReadFile(ctx.Path("cert"))
 	if err != nil {
 		log.Fatal(err)
@@ -189,11 +196,13 @@ func handlePublish(ctx *cli.Context) error {
 	}
 
 	publishCertificate(cert, &privateKey)
-
+	utils.VerboseTime("handlePublish end", verbose)
 	return nil
 }
 
 func handleRekey(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleRekey", verbose)
 	certByte, err := ioutil.ReadFile(ctx.Path("cert"))
 	if err != nil {
 		log.Fatal(err)
@@ -213,12 +222,16 @@ func handleRekey(ctx *cli.Context) error {
 	}
 
 	rekeyCertificate(cert, &privateKey)
-
+	utils.VerboseTime("handleRekey end", verbose)
 	return nil
 }
 
 func handleRevoke(ctx *cli.Context) error {
-	return revokeCertificate(ctx.String("domain"))
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleRevoke", verbose)
+	err := revokeCertificate(ctx.String("domain"))
+	utils.VerboseTime("handleRevoke end", verbose)
+	return err
 }
 
 func handleInit(ctx *cli.Context) error {
@@ -231,6 +244,12 @@ func main() {
 	app := &cli.App{
 		Name:  "sizzle-web-owner",
 		Usage: "Sizzle CLI for web owner",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:  "create",

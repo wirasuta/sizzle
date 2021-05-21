@@ -16,6 +16,7 @@ import (
 )
 
 var config *utils.Config
+var verbose bool
 
 func loadAndVerify(cert *openssl.Certificate, certPath string) error {
 	subject, err := cert.GetSubjectName()
@@ -78,7 +79,7 @@ func endorse(domain string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := utils.GenerateAuthBind(privateKey, client, 125000)
+	auth := utils.GenerateAuthBind(privateKey, client, 500000)
 
 	_, err = szlTxr.CertEndorseByUser(auth, domain)
 	if err != nil {
@@ -99,7 +100,7 @@ func deny(domain string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	auth := utils.GenerateAuthBind(privateKey, client, 125000)
+	auth := utils.GenerateAuthBind(privateKey, client, 500000)
 
 	_, err = szlTxr.CertDenyByUser(auth, domain)
 	if err != nil {
@@ -110,6 +111,8 @@ func deny(domain string) error {
 }
 
 func handleVerify(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleVerify", verbose)
 	certPath := ctx.Path("cert")
 	certByte, err := ioutil.ReadFile(certPath)
 	if err != nil {
@@ -120,17 +123,27 @@ func handleVerify(ctx *cli.Context) error {
 		log.Fatal(err)
 	}
 
-	return loadAndVerify(cert, certPath)
+	err = loadAndVerify(cert, certPath)
+	utils.VerboseTime("handleVerify end", verbose)
+	return err
 }
 
 func handleEndorse(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleEndorse", verbose)
 	domain := ctx.String("domain")
-	return endorse(domain)
+	err := endorse(domain)
+	utils.VerboseTime("handleEndorse end", verbose)
+	return err
 }
 
 func handleDeny(ctx *cli.Context) error {
+	verbose = ctx.Bool("verbose")
+	utils.VerboseTime("handleDeny", verbose)
 	domain := ctx.String("domain")
-	return deny(domain)
+	err := deny(domain)
+	utils.VerboseTime("handleDeny end", verbose)
+	return err
 }
 
 func main() {
@@ -138,6 +151,12 @@ func main() {
 	app := &cli.App{
 		Name:  "sizzle-end-user",
 		Usage: "Sizzle CLI for end user",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:  "verify",
