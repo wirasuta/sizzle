@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -18,7 +20,31 @@ import (
 var config *utils.Config
 var verbose bool
 
-func loadAndVerify(cert *openssl.Certificate, certPath string) error {
+func loadAndVerify(domain string) error {
+	tmpCert, err := ioutil.TempFile(os.TempDir(), "cert-*.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(tmpCert.Name())
+	certDomain := fmt.Sprintf("http://cert.%s", domain)
+	resp, err := http.Get(certDomain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	certPem, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cert, err := openssl.LoadCertificateFromPEM(certPem)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = tmpCert.Write(certPem)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	subject, err := cert.GetSubjectName()
 	if err != nil {
 		log.Fatal(err)
@@ -57,11 +83,18 @@ func loadAndVerify(cert *openssl.Certificate, certPath string) error {
 		}
 
 		if certMetadata.Status == sizzle.CertStatusValid {
-			err = certUtil.AddSSL(domain, certPath)
+			trustAttrs := utils.GenerateTrustAttrs(utils.TrustedCAServer, utils.None, utils.None)
+			err = certUtil.AddSSL(domain, tmpCert.Name(), trustAttrs)
 			if err != nil {
 				log.Fatal(err)
 			}
 			log.Printf("Validated and added %s certificate\n", domain)
+		} else if certMetadata.Status == sizzle.CertStatusInvalid {
+			log.Printf("%s certificate is invalid\n", domain)
+		} else if certMetadata.Status == sizzle.CertStatusRevoked {
+			log.Printf("%s certificate has been revoked\n", domain)
+		} else {
+			log.Printf("%s certificate unknown\n", domain)
 		}
 	}
 
@@ -113,17 +146,8 @@ func deny(domain string) error {
 func handleVerify(ctx *cli.Context) error {
 	verbose = ctx.Bool("verbose")
 	utils.VerboseTime("handleVerify", verbose)
-	certPath := ctx.Path("cert")
-	certByte, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	cert, err := openssl.LoadCertificateFromPEM(certByte)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = loadAndVerify(cert, certPath)
+	domain := ctx.Path("domain")
+	err := loadAndVerify(domain)
 	utils.VerboseTime("handleVerify end", verbose)
 	return err
 }
@@ -160,11 +184,11 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "verify",
-				Usage: "Verify and load TLS certificate",
+				Usage: "Verify and load TLS certificate of a domain",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "cert",
-						Aliases:  []string{"c"},
+						Name:     "domain",
+						Aliases:  []string{"d"},
 						Required: true,
 					},
 				},

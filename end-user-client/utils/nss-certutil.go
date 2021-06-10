@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -75,12 +76,12 @@ func (certutil CertUtil) List() ([]*CertEntry, error) {
 	return certEntries, nil
 }
 
-func (certutil CertUtil) AddSSL(nickname string, certPath string) error {
+func (certutil CertUtil) AddSSL(nickname string, certPath string, trustAttrs string) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = exec.Command("certutil", "-A", "-n", nickname, "-i", certPath, "-t", "CT,,", "-d", path.Join(home, certutil.NssDatabaseDirectory)).Run()
+	err = exec.Command("certutil", "-A", "-n", nickname, "-i", certPath, "-t", trustAttrs, "-d", path.Join(home, certutil.NssDatabaseDirectory)).Run()
 	if err != nil {
 		log.Println(nickname)
 		log.Println(certPath)
@@ -88,4 +89,8 @@ func (certutil CertUtil) AddSSL(nickname string, certPath string) error {
 	}
 
 	return nil
+}
+
+func GenerateTrustAttrs(SSL string, SMIME string, JARXPI string) string {
+	return fmt.Sprintf("%s,%s,%s", SSL, SMIME, JARXPI)
 }
